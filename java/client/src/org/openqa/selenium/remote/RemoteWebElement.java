@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.openqa.selenium.Beta;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
@@ -52,8 +53,66 @@ public class RemoteWebElement implements WebElement, Locatable, TakesScreenshot,
   protected RemoteWebDriver parent;
   protected FileDetector fileDetector;
 
+  //Newly added property
+  private By foundByLocator;
+
   protected void setFoundBy(SearchContext foundFrom, String locator, String term) {
     this.foundBy = String.format("[%s] -> %s: %s", foundFrom, locator, term);
+    setFoundByLocator(locator, term);
+  }
+
+  /**
+   * Attempts to set the By locator that was used to find this element
+   * @param locator the locator type the element was found with
+   * @param term the
+   */
+  private void setFoundByLocator(String locator, String term){
+      if (locator.equals("id")){
+        foundByLocator = By.id(term);
+        return;
+      }
+      if (locator.equals("className")){
+        foundByLocator = By.className(term);
+        return;
+      }
+      if (locator.equals("name")){
+        foundByLocator = By.name(term);
+        return;
+      }
+      if (locator.equals("tagName")){
+        foundByLocator = By.tagName(term);
+        return;
+      }
+      if (locator.equals("xpath")){
+        foundByLocator = By.xpath(term);
+        return;
+      }
+      if (locator.equals("cssSelector")){
+        foundByLocator = By.cssSelector(term);
+        return;
+      }
+      if (locator.equals("linkText")){
+        foundByLocator = By.linkText(term);
+        return;
+      }
+      if (locator.equals("partialLinkText")){
+        foundByLocator = By.partialLinkText(term);
+      }
+      //Alternatively to alert us if one locator strategy is not implemented yet
+      else {
+        throw new IllegalArgumentException("This locator argument is not yet supported: " + locator);
+      }
+  }
+
+  /**
+   * Return the By locator of this element, if the element exist
+   * @return the By locator of the element
+   */
+  public By getFoundByLocator(){
+      if (foundByLocator == null){
+          throw new NoSuchElementException("By locator for this element is not yet yet");
+      }
+      return foundByLocator;
   }
 
   public void setParent(RemoteWebDriver parent) {
